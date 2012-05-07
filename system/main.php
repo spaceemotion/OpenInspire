@@ -15,14 +15,30 @@
   /* Load Languages */
   foreach($config["lang"] as $lang){
     if($lang["active"]){
-      require_once $lang["file"];
-      array_push($config["site"]["enabled_lang"], $lang["name"]);
+      if(file_exists($lang["file"])){
+        require_once $lang["file"];
+        array_push($config["site"]["enabled_lang"], $lang["name"]);
+      }
     }
   }
   
   /* Load Plugins */
   foreach($config["plugin"] as $plugin){
-    
+    if($plugin["active"]){
+      if(file_exists($plugin["dir"] . $plugin["file"])){
+        require_once $plugin["dir"] . $plugin["file"];
+        
+        $plugin_enabled = array(
+          "class" => $plugin["class"] . "_Plugin",
+          "instance" => new $plugin["class"] . "_Plugin"
+        );
+        
+        if(method_exists($plugin_enabled["instance"], $plugin["method"])){
+          call_user_func(array($plugin_enabled["instance"], $plugin["method"]), $plugin["dir"]);
+          array_push($config["site"]["enabled_plugin"], $plugin_enabled);
+        }
+      }
+    }
   }
   
   /* Run The Site */
@@ -76,6 +92,17 @@
     }
     
     if(!$page_set) error(404, "Page Does Not Exist!");
+  }
+  
+  /* Plugin Getting Stuff*/
+  function plugin($class){
+    foreach($config["site"]["enabled_plugin"] as $plugin){
+      if($class == $plugin["class"]){
+        return $plugin["instance"];
+      }
+    }
+    
+    return false;
   }
   
   /* Error Function */
