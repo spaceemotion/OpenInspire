@@ -114,6 +114,11 @@
     return false;
   }
   
+  /* Rendering Views */
+  function render($view, $params = array()){
+    if(file_exists(BASE_DIR . "views/" . $view . ".php")) require_once BASE_DIR . "views/" . $view . ".php";
+  }
+  
   /* Error Function */
   function error($num = 0, $info = ""){
     echo "<b>Error " . $num . "</b><br>Additional Info: <code>" . $info . "</code>";
