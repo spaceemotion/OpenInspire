@@ -28,12 +28,14 @@
       if(file_exists($plugin["dir"] . $plugin["file"])){
         require_once $plugin["dir"] . $plugin["file"];
         
-        $plugin_enabled = array(
-          "class" => $plugin["class"] . "_Plugin",
-          "instance" => new $plugin["class"] . "_Plugin"
-        );
+        $plugin_class = $plugin["class"]."_Plugin";
         
-        if(method_exists($plugin_enabled["instance"], $plugin["method"])){
+        if(method_exists($plugin_class, $plugin["method"])){
+          $plugin_enabled = array(
+            "class" => $plugin["class"],
+            "instance" => new $plugin_class
+          );
+          
           call_user_func(array($plugin_enabled["instance"], $plugin["method"]), $plugin["dir"]);
           array_push($config["site"]["enabled_plugin"], $plugin_enabled);
         }
@@ -44,6 +46,7 @@
   /* Run The Site */
   function run(){
     global $dispatch;
+    
     $url = $_GET['url'];
     $split_url = explode("/", trim($url, "/"));
     $count_url = count($split_url);
@@ -72,8 +75,12 @@
           if(file_exists(BASE_DIR . "controllers/" . $page["controller"] . ".php")){
             require_once BASE_DIR . "controllers/" . $page["controller"] . ".php";
             
-            if(method_exists($page["controller"] . "_Controller", $page["function"])){
-              call_user_func(array($page["controller"] . "_Controller", $page["function"]), $params);
+            $controller_class = $page["controller"] . "_Controller";
+            
+            if(method_exists($controller_class, $page["function"])){
+              $controller = new $controller_class;
+            
+              call_user_func(array($controller, $page["function"]), $params);
               $page_set = true;
             }
             else{
@@ -96,6 +103,8 @@
   
   /* Plugin Getting Stuff*/
   function plugin($class){
+    global $config;
+    
     foreach($config["site"]["enabled_plugin"] as $plugin){
       if($class == $plugin["class"]){
         return $plugin["instance"];
