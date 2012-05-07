@@ -42,7 +42,7 @@
     public function run_query($query){
       switch($this->info["type"]){
         case "mysql":
-          return mysql_query($query)
+          return mysql_query($query);
       }
     }
     
