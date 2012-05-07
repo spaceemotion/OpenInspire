@@ -32,6 +32,8 @@
     $split_url = explode("/", trim($url, "/"));
     $count_url = count($split_url);
     
+    $page_set = false;
+    
     foreach($dispatch as $page){
       $regex_count = count($page["regex"]);
       
@@ -51,9 +53,33 @@
         }
         
         if($match_count == $count_url){
+          if(file_exists(BASE_DIR . "controllers/" . $page["controller"] . ".php")){
+            require_once BASE_DIR . "controllers/" . $page["controller"] . ".php";
+            
+            if(method_exists($page["controller"] . "_Controller", $page["function"])){
+              call_user_func(array($page["controller"] . "_Controller", $page["function"]), $params);
+              $page_set = true;
+            }
+            else{
+              error(500, "Method " . $page["controller"] . "_Controller::" . $page["function"] . "() Does Not Exist!");
+              $page_set = true;
+            }
+          }
+          else{
+            error(500, "Controller " . $page["controller"] . ".php Does Not Exist!");
+            $page_set = true;
+          }
+          
           break;
         }
       }
     }
+    
+    if(!$page_set) error(404, "Page Does Not Exist!");
+  }
+  
+  /* Error Function */
+  function error($num = 0, $info = ""){
+    echo "<b>Error " . $num . "</b><br>Additional Info: <code>" . $info . "</code>";
   }
 ?>
